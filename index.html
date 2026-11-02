@@ -395,6 +395,7 @@
 
   <script>
     const STORAGE_KEY = 'levin_travel_packing_list_v1';
+    const CLOUD_SYNC_URL = 'https://textdb.dev/api/data/levin-packing-91dca755-d31d';
 
     const DEFAULT_CATEGORIES = [
       {
@@ -406,8 +407,7 @@
           { id: 'doc-2', name: 'כרטיס טיסה', packed: false, qty: 1 },
           { id: 'doc-3', name: 'ביטוח', packed: false, qty: 1 },
           { id: 'doc-4', name: 'רישיון נהיגה', packed: false, qty: 1 },
-          { id: 'doc-5', name: 'כרטיס אשראי', packed: false, qty: 1 },
-          { id: 'doc-6', name: 'תעודת סטודנט', packed: false, qty: 1 }
+          { id: 'doc-5', name: 'כרטיס אשראי', packed: false, qty: 1 }
         ]
       },
       {
@@ -437,11 +437,11 @@
           { id: 'el-1', name: 'לפטופ', packed: false, qty: 1 },
           { id: 'el-2', name: 'מטען לפטופ', packed: false, qty: 1 },
           { id: 'el-3', name: 'מטען USB לרכב', packed: false, qty: 1 },
-          { id: 'el-4', name: 'ממיר חשמל', packed: false, qty: 1 },
           { id: 'el-5', name: 'פלאפון', packed: false, qty: 1 },
           { id: 'el-6', name: 'מטען פלאפון', packed: false, qty: 1 },
           { id: 'el-7', name: 'אוזניות לפלאפון', packed: false, qty: 1 },
-          { id: 'el-8', name: 'Power Bank', packed: false, qty: 1 }
+          { id: 'el-8', name: 'Power Bank', packed: false, qty: 1 },
+          { id: 'custom-1793602158619', name: 'מתאם חשמל', packed: false, qty: 1 }
         ]
       },
       {
@@ -491,6 +491,7 @@
 
     let state = {
       categories: JSON.parse(JSON.stringify(DEFAULT_CATEGORIES)),
+      updatedAt: null,
       activeCat: 'all',
       filter: 'all',
       editMode: false,
@@ -499,45 +500,66 @@
     };
 
     async function loadState() {
-      // First load from localStorage immediately
+      let localData = null;
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
           const parsed = JSON.parse(raw);
           if (parsed && Array.isArray(parsed.categories)) {
+            localData = parsed;
             state.categories = parsed.categories;
+            state.updatedAt = parsed.updatedAt || null;
             render();
           }
         }
       } catch (e) {}
 
-      // Then check server state if hosted on server.py
+      // Sync with cloud store so Safari Tab, Home Screen App, and Mac share the exact same list
       try {
-        const res = await fetch('/api/state', { cache: 'no-store' });
+        const res = await fetch(CLOUD_SYNC_URL, { cache: 'no-store' });
         if (res.ok) {
-          const srv = await res.json();
-          if (srv && Array.isArray(srv.categories)) {
-            state.categories = srv.categories;
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(srv));
-            render();
+          const text = await res.text();
+          if (text) {
+            const remoteData = JSON.parse(text);
+            if (remoteData && Array.isArray(remoteData.categories)) {
+              const localTime = localData && localData.updatedAt ? new Date(localData.updatedAt).getTime() : 0;
+              const remoteTime = remoteData.updatedAt ? new Date(remoteData.updatedAt).getTime() : 0;
+
+              if (localData && localTime > remoteTime) {
+                // Local (e.g. Safari tab where edits were made) is newer -> push to cloud!
+                fetch(CLOUD_SYNC_URL, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'text/plain' },
+                  body: JSON.stringify(localData)
+                }).catch(() => {});
+              } else if (!localData || remoteTime >= localTime) {
+                // Cloud is newer -> update local!
+                state.categories = remoteData.categories;
+                state.updatedAt = remoteData.updatedAt;
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(remoteData));
+                render();
+              }
+            }
           }
         }
       } catch (e) {}
     }
 
     function saveState() {
+      state.updatedAt = new Date().toISOString();
       const payload = {
         categories: state.categories,
-        updatedAt: new Date().toISOString()
+        updatedAt: state.updatedAt
       };
+      const jsonStr = JSON.stringify(payload);
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+        localStorage.setItem(STORAGE_KEY, jsonStr);
       } catch (e) {}
       try {
-        fetch('/api/state', {
+        fetch(CLOUD_SYNC_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+          headers: { 'Content-Type': 'text/plain' },
+          body: jsonStr
         }).catch(() => {});
       } catch (e) {}
     }
@@ -771,6 +793,9 @@
 
     render();
     loadState();
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') loadState();
+    });
   </script>
 </body>
 </html>
