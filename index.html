@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="רשימת אריזה" />
+  <title>רשימה לטסים לחו"ל ✈️</title>
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --item-bg: #f8fafc;
+      --item-packed: #f1f5f9;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --primary: #2563eb;
+      --primary-fg: #ffffff;
+      --secondary: #e2e8f0;
+      --secondary-fg: #1e293b;
+      --success: #16a34a;
+      --danger: #ef4444;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a;
+        --card: #1e293b;
+        --item-bg: #0f172a;
+        --item-packed: #172033;
+        --text: #f8fafc;
+        --muted: #94a3b8;
+        --border: #334155;
+        --primary: #3b82f6;
+        --primary-fg: #ffffff;
+        --secondary: #334155;
+        --secondary-fg: #f1f5f9;
+      }
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    body {
+      margin: 0;
+      padding: 12px;
+      background: var(--bg);
+      color: var(--text);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .container {
+      max-width: 780px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-bottom: 32px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .app-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: var(--primary);
+      color: var(--primary-fg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    h1 {
+      margin: 0;
+      font-size: 19px;
+      font-weight: 700;
+    }
+    .subtitle {
+      margin: 2px 0 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    button {
+      border: 1px solid var(--border);
+      background: var(--secondary);
+      color: var(--secondary-fg);
+      padding: 7px 11px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    button:active {
+      transform: scale(0.96);
+    }
+    button.primary {
+      background: var(--primary);
+      color: var(--primary-fg);
+      border-color: var(--primary);
+    }
+    .progress-wrap {
+      margin-top: 14px;
+    }
+    .progress-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .progress-track {
+      width: 100%;
+      height: 10px;
+      background: var(--item-bg);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--primary);
+      width: 0%;
+      transition: width 0.25s ease;
+    }
+    .controls-row {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .filter-group {
+      display: flex;
+      gap: 4px;
+      background: var(--item-bg);
+      padding: 4px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    .filter-group button {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+    .filter-group button.active {
+      background: var(--primary);
+      color: var(--primary-fg);
+    }
+    .search-input {
+      flex: 1;
+      min-width: 140px;
+      padding: 7px 11px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--item-bg);
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+    }
+    .cat-pills {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 2px 0 6px;
+      margin-top: 10px;
+      scrollbar-width: none;
+    }
+    .cat-pills::-webkit-scrollbar {
+      display: none;
+    }
+    .cat-pills button {
+      flex-shrink: 0;
+      font-size: 13px;
+      border-radius: 999px;
+      padding: 6px 12px;
+    }
+    .grid-cats {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media (min-width: 640px) {
+      .grid-cats {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    .cat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .cat-title {
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .badge {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: var(--item-bg);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .item-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--item-bg);
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.15s;
+    }
+    .item-row:active {
+      transform: scale(0.98);
+    }
+    .item-row.packed {
+      background: var(--item-packed);
+      opacity: 0.62;
+    }
+    .item-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .check-box {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: 2px solid var(--border);
+      background: var(--card);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--primary-fg);
+      flex-shrink: 0;
+    }
+    .item-row.packed .check-box {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+    .item-name {
+      font-size: 15px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .item-row.packed .item-name {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+    .qty-badge {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: var(--secondary);
+      color: var(--primary);
+    }
+    .edit-controls {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .edit-controls button {
+      padding: 4px 8px;
+      font-size: 12px;
+      border-radius: 7px;
+    }
+    .add-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+    .add-row input {
+      flex: 1;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--item-bg);
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="card">
+      <div class="header-top">
+        <div class="title-group">
+          <div class="app-icon">✈️</div>
+          <div>
+            <h1>רשימה לטסים לחו"ל</h1>
+            <p class="subtitle" id="statusSubtitle">מוכן לאריזה • נשמר אוטומטית</p>
+          </div>
+        </div>
+        <div class="actions">
+          <button id="editBtn" onclick="toggleEditMode()">✏️ עריכה</button>
+          <button id="copyBtn" onclick="copyToWhatsApp()">📋 העתק</button>
+          <button id="resetBtn" onclick="resetChecks()">🔄 נסיעה חדשה</button>
+        </div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-labels">
+          <span id="progressCount">0 מתוך 48 ארוזים</span>
+          <span id="progressPercent">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progressBar"></div>
+        </div>
+      </div>
+
+      <div class="cat-pills" id="categoryTabs"></div>
+
+      <div class="controls-row">
+        <div class="filter-group">
+          <button id="flt-all" class="active" onclick="setFilter('all')">הכל</button>
+          <button id="flt-unpacked" onclick="setFilter('unpacked')">נשאר לארוז</button>
+          <button id="flt-packed" onclick="setFilter('packed')">ארוז ✅</button>
+        </div>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="חיפוש פריט..."
+          oninput="handleSearch(this.value)"
+        />
+      </div>
+    </div>
+
+    <div id="categoriesContainer" class="grid-cats"></div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'levin_travel_packing_list_v1';
+
+    const DEFAULT_CATEGORIES = [
+      {
+        id: 'docs',
+        name: 'מסמכים',
+        icon: '🛂',
+        items: [
+          { id: 'doc-1', name: 'דרכון', packed: false, qty: 1 },
+          { id: 'doc-2', name: 'כרטיס טיסה', packed: false, qty: 1 },
+          { id: 'doc-3', name: 'ביטוח', packed: false, qty: 1 },
+          { id: 'doc-4', name: 'רישיון נהיגה', packed: false, qty: 1 },
+          { id: 'doc-5', name: 'כרטיס אשראי', packed: false, qty: 1 },
+          { id: 'doc-6', name: 'תעודת סטודנט', packed: false, qty: 1 }
+        ]
+      },
+      {
+        id: 'clothes',
+        name: 'בגדים',
+        icon: '👕',
+        items: [
+          { id: 'cl-1', name: 'חולצה קצרה', packed: false, qty: 1 },
+          { id: 'cl-2', name: 'חולצה ארוכה', packed: false, qty: 1 },
+          { id: 'cl-3', name: 'מכנס אלגנט', packed: false, qty: 1 },
+          { id: 'cl-4', name: 'מכנס קצר', packed: false, qty: 1 },
+          { id: 'cl-5', name: "ג'ינס", packed: false, qty: 1 },
+          { id: 'cl-6', name: 'מכנס בד', packed: false, qty: 1 },
+          { id: 'cl-7', name: 'תחתונים', packed: false, qty: 1 },
+          { id: 'cl-8', name: 'גרביים', packed: false, qty: 1 },
+          { id: 'cl-9', name: 'חגורה', packed: false, qty: 1 },
+          { id: 'cl-10', name: 'בגד ים', packed: false, qty: 1 },
+          { id: 'cl-11', name: 'כובע', packed: false, qty: 1 },
+          { id: 'cl-12', name: "ז'קט", packed: false, qty: 1 }
+        ]
+      },
+      {
+        id: 'electronics',
+        name: 'אלקטרוני',
+        icon: '🔌',
+        items: [
+          { id: 'el-1', name: 'לפטופ', packed: false, qty: 1 },
+          { id: 'el-2', name: 'מטען לפטופ', packed: false, qty: 1 },
+          { id: 'el-3', name: 'מטען USB לרכב', packed: false, qty: 1 },
+          { id: 'el-4', name: 'ממיר חשמל', packed: false, qty: 1 },
+          { id: 'el-5', name: 'פלאפון', packed: false, qty: 1 },
+          { id: 'el-6', name: 'מטען פלאפון', packed: false, qty: 1 },
+          { id: 'el-7', name: 'אוזניות לפלאפון', packed: false, qty: 1 },
+          { id: 'el-8', name: 'Power Bank', packed: false, qty: 1 }
+        ]
+      },
+      {
+        id: 'toiletries',
+        name: 'כלי רחצה',
+        icon: '🧴',
+        items: [
+          { id: 'tl-1', name: 'מברשת שיניים', packed: false, qty: 1 },
+          { id: 'tl-2', name: 'משחת שיניים', packed: false, qty: 1 },
+          { id: 'tl-3', name: 'חוט דנטלי', packed: false, qty: 1 },
+          { id: 'tl-4', name: 'דאודורנט', packed: false, qty: 1 },
+          { id: 'tl-5', name: 'קרם לשיער', packed: false, qty: 1 },
+          { id: 'tl-6', name: 'מסרק', packed: false, qty: 1 },
+          { id: 'tl-7', name: 'ספוג רחצה', packed: false, qty: 1 },
+          { id: 'tl-8', name: 'שמפו', packed: false, qty: 1 },
+          { id: 'tl-9', name: 'כלי גילוח', packed: false, qty: 1 },
+          { id: 'tl-10', name: 'סבון רחצה', packed: false, qty: 1 }
+        ]
+      },
+      {
+        id: 'misc',
+        name: 'שונות',
+        icon: '🎒',
+        items: [
+          { id: 'ms-1', name: 'כסף', packed: false, qty: 1 },
+          { id: 'ms-2', name: 'משקפי שמש', packed: false, qty: 1 },
+          { id: 'ms-3', name: 'שעון', packed: false, qty: 1 },
+          { id: 'ms-4', name: 'תיק גב', packed: false, qty: 1 },
+          { id: 'ms-5', name: 'ספר קריאה', packed: false, qty: 1 },
+          { id: 'ms-6', name: 'ארנק', packed: false, qty: 1 },
+          { id: 'ms-7', name: 'ארנק קטן', packed: false, qty: 1 },
+          { id: 'ms-8', name: 'כרטיסי ביקור', packed: false, qty: 1 },
+          { id: 'ms-9', name: 'תרופות', packed: false, qty: 1 }
+        ]
+      },
+      {
+        id: 'shoes',
+        name: 'נעליים',
+        icon: '👟',
+        items: [
+          { id: 'sh-1', name: 'נעלי ספורט', packed: false, qty: 1 },
+          { id: 'sh-2', name: 'נעלי אלגנט', packed: false, qty: 1 },
+          { id: 'sh-3', name: 'כפכפים', packed: false, qty: 1 }
+        ]
+      }
+    ];
+
+    let state = {
+      categories: JSON.parse(JSON.stringify(DEFAULT_CATEGORIES)),
+      activeCat: 'all',
+      filter: 'all',
+      editMode: false,
+      searchQuery: '',
+      confirmReset: false
+    };
+
+    async function loadState() {
+      // First load from localStorage immediately
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.categories)) {
+            state.categories = parsed.categories;
+            render();
+          }
+        }
+      } catch (e) {}
+
+      // Then check server state if hosted on server.py
+      try {
+        const res = await fetch('/api/state', { cache: 'no-store' });
+        if (res.ok) {
+          const srv = await res.json();
+          if (srv && Array.isArray(srv.categories)) {
+            state.categories = srv.categories;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(srv));
+            render();
+          }
+        }
+      } catch (e) {}
+    }
+
+    function saveState() {
+      const payload = {
+        categories: state.categories,
+        updatedAt: new Date().toISOString()
+      };
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      } catch (e) {}
+      try {
+        fetch('/api/state', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).catch(() => {});
+      } catch (e) {}
+    }
+
+    function toggleItem(catId, itemId) {
+      if (state.editMode) return;
+      const cat = state.categories.find(c => c.id === catId);
+      if (!cat) return;
+      const item = cat.items.find(i => i.id === itemId);
+      if (!item) return;
+      item.packed = !item.packed;
+      saveState();
+      render();
+    }
+
+    function toggleCategoryAll(catId) {
+      const cat = state.categories.find(c => c.id === catId);
+      if (!cat || !cat.items.length) return;
+      const allPacked = cat.items.every(i => i.packed);
+      cat.items.forEach(i => { i.packed = !allPacked; });
+      saveState();
+      render();
+    }
+
+    function changeQty(catId, itemId, delta, e) {
+      e.stopPropagation();
+      const cat = state.categories.find(c => c.id === catId);
+      if (!cat) return;
+      const item = cat.items.find(i => i.id === itemId);
+      if (!item) return;
+      item.qty = Math.max(1, (item.qty || 1) + delta);
+      saveState();
+      render();
+    }
+
+    function deleteItem(catId, itemId, e) {
+      e.stopPropagation();
+      const cat = state.categories.find(c => c.id === catId);
+      if (!cat) return;
+      cat.items = cat.items.filter(i => i.id !== itemId);
+      saveState();
+      render();
+    }
+
+    function addItem(catId) {
+      const inp = document.getElementById('add-inp-' + catId);
+      if (!inp) return;
+      const name = inp.value.trim();
+      if (!name) return;
+      const cat = state.categories.find(c => c.id === catId);
+      if (!cat) return;
+      cat.items.push({
+        id: 'custom-' + Date.now(),
+        name,
+        packed: false,
+        qty: 1
+      });
+      inp.value = '';
+      saveState();
+      render();
+    }
+
+    function setCategory(catId) {
+      state.activeCat = catId;
+      render();
+    }
+
+    function setFilter(f) {
+      state.filter = f;
+      render();
+    }
+
+    function handleSearch(val) {
+      state.searchQuery = val.trim();
+      render();
+    }
+
+    function toggleEditMode() {
+      state.editMode = !state.editMode;
+      render();
+    }
+
+    function resetChecks() {
+      const btn = document.getElementById('resetBtn');
+      if (!state.confirmReset) {
+        state.confirmReset = true;
+        btn.textContent = '⚠️ לחץ שוב לאיפוס';
+        setTimeout(() => {
+          state.confirmReset = false;
+          render();
+        }, 3000);
+        return;
+      }
+      state.confirmReset = false;
+      state.categories.forEach(c => c.items.forEach(i => { i.packed = false; }));
+      saveState();
+      render();
+    }
+
+    function copyToWhatsApp() {
+      let total = 0;
+      let packed = 0;
+      const lines = ['*✈️ רשימת אריזה לחו"ל*'];
+      state.categories.forEach(cat => {
+        total += cat.items.length;
+        packed += cat.items.filter(i => i.packed).length;
+        const rem = cat.items.filter(i => !i.packed);
+        if (rem.length > 0) {
+          lines.push(`\n*${cat.icon} ${cat.name}:*`);
+          rem.forEach(i => lines.push(`⬜ ${i.name}${i.qty > 1 ? ' (x' + i.qty + ')' : ''}`));
+        }
+      });
+      lines.splice(1, 0, `📊 ארוזים: ${packed}/${total}`);
+      navigator.clipboard.writeText(lines.join('\n')).then(() => {
+        const btn = document.getElementById('copyBtn');
+        btn.textContent = '✅ הועתק!';
+        setTimeout(() => render(), 1800);
+      });
+    }
+
+    function render() {
+      let total = 0;
+      let packed = 0;
+      state.categories.forEach(c => {
+        total += c.items.length;
+        packed += c.items.filter(i => i.packed).length;
+      });
+      const pct = total ? Math.round((packed / total) * 100) : 0;
+
+      document.getElementById('progressCount').textContent = `${packed} מתוך ${total} ארוזים`;
+      document.getElementById('progressPercent').textContent = `${pct}%`;
+      document.getElementById('progressBar').style.width = `${pct}%`;
+      document.getElementById('statusSubtitle').textContent =
+        pct === 100 ? '🎉 הכל ארוז! טיסה נעימה ובטוחה' : `נשארו עוד ${total - packed} פריטים לארוז • נשמר אוטומטית`;
+
+      const editBtn = document.getElementById('editBtn');
+      editBtn.textContent = state.editMode ? '✅ סיום עריכה' : '✏️ עריכה';
+      editBtn.className = state.editMode ? 'primary' : '';
+
+      if (!state.confirmReset) {
+        document.getElementById('resetBtn').textContent = '🔄 נסיעה חדשה';
+      }
+      document.getElementById('copyBtn').textContent = '📋 העתק';
+
+      // Category pills
+      const tabsEl = document.getElementById('categoryTabs');
+      let pillsHtml = `<button class="${state.activeCat === 'all' ? 'primary' : ''}" onclick="setCategory('all')">הכל (${packed}/${total})</button>`;
+      state.categories.forEach(c => {
+        const cp = c.items.filter(i => i.packed).length;
+        pillsHtml += `<button class="${state.activeCat === c.id ? 'primary' : ''}" onclick="setCategory('${c.id}')">${c.icon} ${c.name} (${cp}/${c.items.length})</button>`;
+      });
+      tabsEl.innerHTML = pillsHtml;
+
+      // Filter buttons
+      ['all', 'unpacked', 'packed'].forEach(f => {
+        document.getElementById('flt-' + f).className = state.filter === f ? 'active' : '';
+      });
+
+      const container = document.getElementById('categoriesContainer');
+      const cats = state.activeCat === 'all'
+        ? state.categories
+        : state.categories.filter(c => c.id === state.activeCat);
+
+      let html = '';
+      cats.forEach(cat => {
+        const items = cat.items.filter(item => {
+          if (state.filter === 'unpacked' && item.packed) return false;
+          if (state.filter === 'packed' && !item.packed) return false;
+          if (state.searchQuery && !item.name.toLowerCase().includes(state.searchQuery.toLowerCase())) return false;
+          return true;
+        });
+
+        if (items.length === 0 && !state.editMode) return;
+
+        const cp = cat.items.filter(i => i.packed).length;
+        const allPacked = cat.items.length > 0 && cp === cat.items.length;
+
+        html += `
+          <div class="card">
+            <div class="cat-header">
+              <div class="cat-title">
+                <span>${cat.icon}</span>
+                <span>${cat.name}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span class="badge">${cp}/${cat.items.length}</span>
+                ${!state.editMode && cat.items.length > 0 ? `
+                  <button onclick="toggleCategoryAll('${cat.id}')" style="padding:4px 8px;font-size:12px;">
+                    ${allPacked ? 'בטל הכל' : 'סמן הכל'}
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+            <div class="items-list">
+              ${items.map(item => `
+                <div class="item-row ${item.packed ? 'packed' : ''}" onclick="toggleItem('${cat.id}', '${item.id}')">
+                  <div class="item-left">
+                    <div class="check-box">${item.packed ? '✓' : ''}</div>
+                    <span class="item-name">${item.name}</span>
+                    ${item.qty > 1 ? `<span class="qty-badge">x${item.qty}</span>` : ''}
+                  </div>
+                  ${state.editMode ? `
+                    <div class="edit-controls" onclick="event.stopPropagation()">
+                      <button onclick="changeQty('${cat.id}','${item.id}',-1,event)">-</button>
+                      <span style="font-size:12px;font-weight:700;min-width:16px;text-align:center;">${item.qty || 1}</span>
+                      <button onclick="changeQty('${cat.id}','${item.id}',1,event)">+</button>
+                      <button onclick="deleteItem('${cat.id}','${item.id}',event)" title="מחק">🗑️</button>
+                    </div>
+                  ` : ''}
+                </div>
+              `).join('')}
+            </div>
+            ${state.editMode ? `
+              <div class="add-row">
+                <input id="add-inp-${cat.id}" type="text" placeholder="הוסף פריט ל${cat.name}..." onkeydown="if(event.key==='Enter')addItem('${cat.id}')" />
+                <button class="primary" onclick="addItem('${cat.id}')">+ הוסף</button>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      });
+
+      if (!html) {
+        html = `<div class="card" style="grid-column:1/-1;text-align:center;padding:32px;">
+          <div style="font-size:28px;margin-bottom:6px;">🎉</div>
+          <div style="font-weight:700;">לא נשארו פריטים פתוחים בסינון הנוכחי!</div>
+        </div>`;
+      }
+      container.innerHTML = html;
+    }
+
+    render();
+    loadState();
+  </script>
+</body>
+</html>
